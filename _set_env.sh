@@ -7,4 +7,11 @@ STRING="_set_env.sh"
 echo $STRING
 ############################################
 
-#TODO: Test param 1 is valid Host enviroment. Possibilites: Win32, Win64, Ubuntu16. Provide a config file to set the local tools, like ptyhon, scons, etc
+case "$OSTYPE" in
+  solaris*) echo "SOLARIS" ;;
+  darwin*)  echo "OSX" ;; 
+  linux*)   echo "LINUX" ;;
+  bsd*)     echo "BSD" ;;
+  msys*)    echo "WINDOWS" ;;
+  *)        echo "unknown: $OSTYPE" ;;
+esac
