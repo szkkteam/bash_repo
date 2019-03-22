@@ -4,6 +4,10 @@
 #set -x
 ############################################
 
+set -e
+
+CONFIG_FILE="tools.config"
+
 # Bash functions
 ############################################
 function error_exit
@@ -16,15 +20,38 @@ function error_exit
 #   ---------------------------------------------------------------- 
 
     echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
-    exit 1
+    return
 }
+
+# Add path to path enviroment variable is not exists
+pathadd() {
+    newelement=${1%/}
+    if [ -d "$1" ] && ! echo $PATH | grep -E -q "(^|:)$newelement($|:)" ; then
+        if [ "$2" = "after" ] ; then
+            PATH="$PATH:$newelement"
+        else
+            PATH="$newelement:$PATH"
+        fi
+    fi
+}
+
+# Remove path from enviroment variable  
+pathrm() {
+    PATH="$(echo $PATH | sed -e "s;\(^\|:\)${1%/}\(:\|\$\);\1\2;g" -e 's;^:\|:$;;g' -e 's;::;:;g')"
+}
+
+if [ -z $(type $CONFIG_FILE) ]; then
+	error_exit "tools.config is not exists. Please run _bash_init.sh first."
+else
+    source $CONFIG_FILE
+fi
 
 function check_and_search
 {
 	local LOC_PYTHON_PATH=$1
 
 	if [ -z "$LOC_PYTHON_PATH" ]; then
-		LOC_PYTHON_PATH=$(which $2)
+		LOC_PYTHON_PATH=$(type $2)
 		if [ -z "$LOC_PYTHON_PATH" ]; then
 			error_exit "$2 is not found."
 		fi
@@ -66,22 +93,25 @@ else
 	error_exit "Build platform is not supported!"
 fi
 
-source tools.config
-
 # Get the path of python. If the variable is still empty, python is not present on the system, or not added to env path
-PYTHON_PATH=$(check_and_search "$PYTHON_PATH" "python")
+PYTHON_PATH=$(check_and_search "$PYTHON_PATH" "$PYTHON_EXECUTABLE")
+if [ "$PYTHON_PATH" != "" ]; then
+    # Add the current directory to the PATH
+    pathadd $PYTHON_PATH after 
+    echo "PYTHON_PATH=$PYTHON_PATH"
+else 
+	error_exit "PYTHON_PATH= is empty. Python executable is not found."
+fi
 
-SCONS_PATH=$(check_and_search "$SCONS_PATH" "scons")
-#if [ -z "$PYTHON_PATH" ]; then
-#	PYTHON_PATH=$(which python)
-#fi
-#if [ -z "$PYTHON_PATH" ]; then
-#	PYTHON_PATH=$(which python)
-#fi
-#
-#if [ -z "$SCONS_PATH" ]; then
-#	SCONS_PATH=$(which scons)
-#fi
+# Get the path of scons. If the variable is still empty, scons is not present on the system, or not added to env path
+SCONS_PATH=$(check_and_search "$SCONS_PATH" "$SCONS_MAIN")
+if [ "$SCONS_PATH" != "" ]; then
+    # Add the current directory to the PATH
+    pathadd $SCONS_PATH after 
+    echo "SCONS_PATH=$SCONS_PATH"
+else 
+	error_exit "SCONS_PATH= is empty. Scons package is not found."
+fi
 
-echo "PYTHON_PATH=$PYTHON_PATH"
-echo "SCONS_PATH=$SCONS_PATH"
+# Export the path variable.
+export PATH
