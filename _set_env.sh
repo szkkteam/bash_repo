@@ -4,7 +4,7 @@
 #set -x
 ############################################
 
-set -e
+#set -e
 
 CONFIG_FILE="tools.config"
 
@@ -20,7 +20,7 @@ function error_exit
 #   ---------------------------------------------------------------- 
 
     echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
-    return
+    #return
 }
 
 # Add path to path enviroment variable is not exists
@@ -97,6 +97,7 @@ fi
 PYTHON_PATH=$(check_and_search "$PYTHON_PATH" "$PYTHON_EXECUTABLE")
 if [ "$PYTHON_PATH" != "" ]; then
     # Add the current directory to the PATH
+    export PYTHON_EXECUTABLE
     pathadd $PYTHON_PATH after 
     echo "PYTHON_PATH=$PYTHON_PATH"
 else 
@@ -104,14 +105,14 @@ else
 fi
 
 # Get the path of scons. If the variable is still empty, scons is not present on the system, or not added to env path
-SCONS_PATH=$(check_and_search "$SCONS_PATH" "$SCONS_MAIN")
-if [ "$SCONS_PATH" != "" ]; then
-    # Add the current directory to the PATH
-    pathadd $SCONS_PATH after 
-    echo "SCONS_PATH=$SCONS_PATH"
-else 
-	error_exit "SCONS_PATH= is empty. Scons package is not found."
-fi
+#SCONS_PATH=$(check_and_search "$SCONS_PATH" "$SCONS_MAIN")
+#if [ "$SCONS_PATH" != "" ]; then
+#    # Add the current directory to the PATH
+#    pathadd $SCONS_PATH after 
+#    echo "SCONS_PATH=$SCONS_PATH"
+#else 
+#	error_exit "SCONS_PATH= is empty. Scons package is not found."
+#fi
 
 # Export the path variable.
 export PATH
